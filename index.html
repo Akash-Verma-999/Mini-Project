@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WearWise - Weather Based Cloth suggestor</title>
+    <link rel="icon" href="Image/pngtree-collection-of-detailed-weather-icons-for-digital-forecast-applications-png-image_13492823.png" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            background: #3b82f6;
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .hero h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+
+        .search-container {
+            max-width: 700px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 50px 20px 25px;
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: #6b7280;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+
+        .search-btn {
+            padding: 20px 35px;
+            background: #3b82f6;
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .search-btn:disabled {
+            background: #374151;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-msg {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            color: #fca5a5;
+            text-align: center;
+        }
+
+        .weather-card {
+            background: rgba(31, 41, 55, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+        }
+
+        .weather-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .weather-icon {
+            font-size: 80px;
+        }
+
+        .city-name {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .weather-desc {
+            color: #9ca3af;
+            margin-top: 5px;
+            text-transform: capitalize;
+        }
+
+        .temp-display {
+            text-align: right;
+        }
+
+        .temp-main {
+            font-size: 60px;
+            font-weight: 700;
+        }
+
+        .temp-feels {
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .detail-card {
+            background: rgba(17, 24, 39, 0.5);
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .recommendations-card {
+            background: rgba(31, 41, 55, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 24px;
+            padding: 40px;
+        }
+
+        .rec-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .rec-icon {
+            background: #8b5cf6;
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .rec-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .general-advice {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .advice-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .advice-icon {
+            background: #8b5cf6;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 3px;
+        }
+
+        .advice-title {
+            color: #c4b5fd;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .advice-text {
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+
+        .clothing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .clothing-item {
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.3s;
+        }
+
+        .clothing-item:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .item-category {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .item-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .item-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+        }
+
+        .model-info {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(75, 85, 99, 0.5);
+            display: flex;
+            justify-content: space-between;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .empty-text {
+            color: #4b5563;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                </svg>
+            </div>
+            <div>
+                <h1>WearWise</h1>
+                <p>Smart Clothing Advisor</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h2>Thinking what to wear? WearWise is here!</h2>
+            
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="cityInput" 
+                        class="search-input" 
+                        placeholder="Enter city name (e.g., London, Tokyo, New York)"
+                        onkeypress="if(event.key === 'Enter') getSuggestions()"
+                    >
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <button id="searchBtn" class="search-btn" onclick="getSuggestions()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <span>Get Suggestions</span>
+                </button>
+            </div>
+
+            <div id="errorMsg" class="error-msg hidden"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state">
+            <div class="empty-icon">☁️</div>
+            <h3 class="empty-title">Enter a city to get started</h3>
+            <p class="empty-text">Get clothing recommendations based on real-time weather</p>
+        </div>
+
+        <!-- Weather Data -->
+        <div id="weatherContent" class="hidden">
+            <!-- Weather Card -->
+            <div class="weather-card">
+                <div class="weather-header">
+                    <div class="weather-info">
+                        <div class="weather-icon">☁️</div>
+                        <div>
+                            <h3 class="city-name" id="cityName">--</h3>
+                            <p class="weather-desc" id="weatherDesc">--</p>
+                        </div>
+                    </div>
+                    <div class="temp-display">
+                        <div class="temp-main" id="tempMain">--°C</div>
+                        <div class="temp-feels" id="tempFeels">Feels like --°C</div>
+                    </div>
+                </div>
+
+                <div class="weather-details">
+                    <div class="detail-card">
+                        <div class="detail-header" style="color: #60a5fa;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                            </svg>
+                            Humidity
+                        </div>
+                        <div class="detail-value" id="humidity">--%</div>
+                    </div>
+
+                    <div class="detail-card">
+                        <div class="detail-header" style="color: #a78bfa;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+                            </svg>
+                            Wind Speed
+                        </div>
+                        <div class="detail-value" id="windSpeed">-- m/s</div>
+                    </div>
+
+                    <div class="detail-card">
+                        <div class="detail-header" style="color: #f472b6;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                            </svg>
+                            Condition
+                        </div>
+                        <div class="detail-value" id="condition" style="font-size: 18px; text-transform: capitalize;">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations Card -->
+            <div class="recommendations-card">
+                <div class="rec-header">
+                    <div class="rec-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                        </svg>
+                    </div>
+                    <h3 class="rec-title">AI-Powered Clothing Recommendations</h3>
+                </div>
+
+                <!-- General Advice -->
+                <div class="general-advice">
+                    <div class="advice-header">
+                        <div class="advice-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="advice-title">General Advice</div>
+                            <div class="advice-text" id="generalAdvice">Loading advice...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clothing Items Grid -->
+                <div id="clothingGrid" class="clothing-grid">
+                    <!-- Items will be inserted here by JavaScript -->
+                </div>
+
+                <!-- Model Info -->
+                <div class="model-info">
+                    <div class="info-item">
+                        <div class="status-dot"></div>
+                        <span>Powered by <span id="modelName">BLOOM-560m</span></span>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        async function getSuggestions() {
+            const cityInput = document.getElementById('cityInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            const emptyState = document.getElementById('emptyState');
+            const weatherContent = document.getElementById('weatherContent');
+            
+            const city = cityInput.value.trim();
+            
+            if (!city) {
+                showError('Please enter a city name');
+                return;
+            }
+
+            // Show loading state
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<div class="spinner"></div><span>Loading...</span>';
+            errorMsg.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            weatherContent.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/suggest-clothes/${encodeURIComponent(city)}`);
+                
+                if (!response.ok) {
+                    throw new Error('City not found or API error');
+                }
+
+                const data = await response.json();
+                displayWeatherData(data);
+                
+            } catch (error) {
+                showError(error.message || 'Failed to fetch weather data. Make sure your backend is running on http://localhost:8000');
+                emptyState.classList.remove('hidden');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <span>Get Suggestions</span>
+                `;
+            }
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.classList.remove('hidden');
+        }
+
+        function displayWeatherData(data) {
+            // Update weather info
+            document.getElementById('cityName').textContent = `${data.city}, ${data.country}`;
+            document.getElementById('weatherDesc').textContent = data.weather.condition;
+            document.getElementById('tempMain').textContent = `${Math.round(data.weather.temperature)}°C`;
+            document.getElementById('tempFeels').textContent = `Feels like ${Math.round(data.weather.feels_like)}°C`;
+            document.getElementById('humidity').textContent = `${data.weather.humidity}%`;
+            document.getElementById('windSpeed').textContent = `${data.weather.wind_speed || 0} m/s`;
+            document.getElementById('condition').textContent = data.weather.condition;
+            
+            // Generate general advice
+            const advice = generateGeneralAdvice(data.weather);
+            document.getElementById('generalAdvice').textContent = advice;
+            
+            // Parse and display clothing items
+            const items = parseAISuggestions(data.ai_suggestion);
+            displayClothingItems(items);
+            
+            // Update model name
+            document.getElementById('modelName').textContent = data.model || 'BLOOM-560m';
+            
+            // Show weather content
+            document.getElementById('weatherContent').classList.remove('hidden');
+        }
+
+        function parseAISuggestions(text) {
+            if (!text) return [];
+            
+            const lines = text.split('\n').filter(line => line.trim());
+            const items = lines
+                .map(line => line.replace(/^\d+\.\s*/, '').trim())
+                .filter(item => item.length > 0);
+            
+            return items.slice(0, 6);
+        }
+
+        function categorizeItem(item) {
+            const lower = item.toLowerCase();
+            
+            if (lower.includes('shirt') || lower.includes('top') || lower.includes('blouse') || lower.includes('sweater')) {
+                return 'Upper Body';
+            } else if (lower.includes('pant') || lower.includes('short') || lower.includes('jean') || lower.includes('trouser') || lower.includes('skirt')) {
+                return 'Lower Body';
+            } else if (lower.includes('shoe') || lower.includes('boot') || lower.includes('sandal') || lower.includes('sneaker')) {
+                return 'Footwear';
+            } else if (lower.includes('jacket') || lower.includes('coat') || lower.includes('hoodie') || lower.includes('cardigan')) {
+                return 'Outerwear';
+            } else {
+                return 'Accessories';
+            }
+        }
+
+        function displayClothingItems(items) {
+            const grid = document.getElementById('clothingGrid');
+            grid.innerHTML = '';
+            
+            items.forEach(item => {
+                const category = categorizeItem(item);
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'clothing-item';
+                itemDiv.innerHTML = `
+                    <div class="item-category">${category}</div>
+                    <div class="item-name">${item}</div>
+                    <div class="item-badge">
+                        <div class="badge-dot"></div>
+                        <span>AI Recommended</span>
+                    </div>
+                `;
+                grid.appendChild(itemDiv);
+            });
+        }
+
+        function generateGeneralAdvice(weather) {
+            const temp = weather.temperature;
+            const humidity = weather.humidity;
+            const condition = weather.condition.toLowerCase();
+            
+            let advice = '';
+            
+            if (temp > 30) {
+                advice = 'In high humidity and warm temperatures like this, prioritize breathable, lightweight fabrics such as cotton or linen. Light colors are preferable as they reflect sunlight. Avoid heavy layers and choose loose-fitting clothing to promote airflow.';
+            } else if (temp > 25) {
+                advice = 'For warm weather, opt for light, breathable fabrics. Cotton and linen work well. Consider sun protection with hats or light long sleeves if spending time outdoors.';
+            } else if (temp > 15) {
+                advice = 'Mild temperatures call for versatile layering. A light jacket or cardigan you can remove is ideal. Long sleeves are comfortable without being too warm.';
+            } else if (temp > 5) {
+                advice = 'Cool weather requires proper layering. Start with a base layer, add a sweater or fleece, and top with a jacket. This allows you to adjust as needed.';
+            } else {
+                advice = 'Cold weather demands insulation. Multiple layers trap warm air effectively. Consider thermal underwear, warm mid-layers, and a weather-resistant outer layer.';
+            }
+            
+            if (humidity > 80) {
+                advice += ' High humidity can make it feel warmer and cause discomfort. Choose moisture-wicking, breathable fabrics to stay comfortable.';
+            }
+            
+            if (condition.includes('rain') || condition.includes('drizzle')) {
+                advice += ' Rainy conditions require waterproof outerwear and appropriate footwear to keep you dry.';
+            }
+            
+            return advice;
+        }
+    </script>
+</body>
+</html>
